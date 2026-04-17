@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud FinOps Reifegrad-Assessment</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 28px 24px;
+    line-height: 1.6;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap { background: #f0f0f0; height: 4px; border-radius: 2px; margin-bottom: 24px; }
+  .progress-fill { height: 4px; border-radius: 2px; background: #1a56db; transition: width 0.4s ease; }
+
+  .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .meta-label { font-size: 12px; color: #6b7280; }
+  .domain-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 99px;
+    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+  }
+
+  /* ── Question ── */
+  .q-title { font-size: 17px; font-weight: 500; color: #111; margin-bottom: 18px; }
+
+  .option-btn {
+    display: flex; align-items: flex-start; gap: 12px;
+    width: 100%; text-align: left;
+    padding: 13px 16px; margin-bottom: 10px;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+    background: #fff; cursor: pointer;
+    font-size: 14px; color: #374151;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .option-btn:hover { background: #f9fafb; border-color: #9ca3af; }
+  .option-btn.selected { border-color: #1a56db; background: #eff6ff; color: #1e3a8a; }
+  .option-btn.selected .badge { background: #1a56db; color: #fff; }
+
+  .badge {
+    flex-shrink: 0; width: 24px; height: 24px;
+    border-radius: 50%; background: #f3f4f6;
+    font-size: 11px; font-weight: 600; color: #6b7280;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 10px; margin-top: 24px; }
+
+  .btn-back {
+    padding: 10px 20px; border: 1px solid #e5e7eb; border-radius: 8px;
+    background: #fff; cursor: pointer; font-size: 14px; color: #6b7280;
+  }
+  .btn-back:hover { background: #f9fafb; }
+
+  .btn-next {
+    flex: 1; padding: 11px 20px; border: none; border-radius: 8px;
+    background: #1a56db; color: #fff; cursor: pointer;
+    font-size: 15px; font-weight: 500;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  .btn-next:hover { background: #1245b8; }
+  .btn-next:disabled { background: #93c5fd; cursor: default; }
+
+  /* ── Intro ── */
+  .intro-header { font-size: 22px; font-weight: 600; color: #111; margin-bottom: 8px; }
+  .intro-sub { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
+
+  .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+  .level-card {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 12px;
+    text-align: center; background: #f9fafb;
+  }
+  .level-icon { font-size: 24px; margin-bottom: 6px; }
+  .level-name { font-size: 14px; font-weight: 600; color: #111; margin-bottom: 2px; }
+  .level-pts { font-size: 12px; color: #9ca3af; }
+
+  .btn-start {
+    width: 100%; padding: 13px; border: none; border-radius: 10px;
+    background: #1a56db; color: #fff; font-size: 16px; font-weight: 500;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-start:hover { background: #1245b8; }
+
+  /* ── Result ── */
+  .result-header { font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+  .result-title { font-size: 22px; font-weight: 600; color: #111; margin-bottom: 20px; }
+
+  .result-badge {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px; border-radius: 12px; margin-bottom: 20px;
+  }
+  .result-icon { font-size: 36px; }
+  .result-level { font-size: 26px; font-weight: 700; }
+  .result-score { font-size: 13px; margin-top: 2px; opacity: 0.75; }
+  .result-desc { font-size: 14px; line-height: 1.65; margin-top: 10px; }
+
+  .section-card {
+    border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px;
+    margin-bottom: 14px;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #9ca3af; margin-bottom: 12px;
+  }
+
+  .domain-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .domain-name { font-size: 13px; color: #374151; width: 140px; flex-shrink: 0; }
+  .bar-bg { flex: 1; height: 6px; background: #f3f4f6; border-radius: 3px; }
+  .bar-fill { height: 6px; border-radius: 3px; transition: width 0.6s ease; }
+  .bar-score { font-size: 12px; color: #9ca3af; width: 28px; text-align: right; }
+
+  .next-step { display: flex; gap: 8px; margin: 8px 0; font-size: 14px; color: #374151; }
+  .step-arrow { color: #1a56db; flex-shrink: 0; }
+
+  .btn-row-result { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .btn-restart {
+    padding: 10px 20px; border: 1px solid #e5e7eb; border-radius: 8px;
+    background: #fff; cursor: pointer; font-size: 14px; color: #6b7280;
+  }
+  .btn-restart:hover { background: #f9fafb; }
+
+  /* Contact capture */
+  .contact-card {
+    border: 1px solid #bfdbfe; border-radius: 10px;
+    background: #eff6ff; padding: 18px; margin-bottom: 14px;
+  }
+  .contact-title { font-size: 15px; font-weight: 500; color: #1e3a8a; margin-bottom: 4px; }
+  .contact-sub { font-size: 13px; color: #3b82f6; margin-bottom: 14px; }
+  .contact-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #bfdbfe; border-radius: 8px;
+    font-size: 14px; margin-bottom: 10px; background: #fff; color: #111;
+    outline: none;
+  }
+  .contact-input:focus { border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+  .btn-send {
+    width: 100%; padding: 10px; border: none; border-radius: 8px;
+    background: #1a56db; color: #fff; font-size: 14px; font-weight: 500;
+    cursor: pointer;
+  }
+  .btn-send:hover { background: #1245b8; }
+  .sent-msg { font-size: 14px; color: #15803d; text-align: center; padding: 10px 0; }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ INTRO ════════════ -->
+<div id="screen-intro">
+  <p class="intro-header">Cloud FinOps</p>
+  <h1 class="intro-header" style="font-size:22px; margin-bottom:8px;">Reifegrad-Assessment</h1>
+  <p class="intro-sub">10 Fragen · ca. 3 Minuten · Ergebnis: Crawl, Walk oder Run</p>
+
+  <div class="level-grid">
+    <div class="level-card">
+      <div class="level-icon">🐛</div>
+      <div class="level-name">Crawl</div>
+      <div class="level-pts">10–16 Pkt.</div>
+    </div>
+    <div class="level-card">
+      <div class="level-icon">🚶</div>
+      <div class="level-name">Walk</div>
+      <div class="level-pts">17–23 Pkt.</div>
+    </div>
+    <div class="level-card">
+      <div class="level-icon">🏃</div>
+      <div class="level-name">Run</div>
+      <div class="level-pts">24–30 Pkt.</div>
+    </div>
+  </div>
+
+  <button class="btn-start" onclick="startAssessment()">Assessment starten →</button>
+</div>
+
+<!-- ════════════ QUESTION ════════════ -->
+<div id="screen-question" class="hidden">
+  <div class="meta-row">
+    <span class="meta-label" id="q-counter">Frage 1 von 10</span>
+    <span class="domain-badge" id="q-domain">Sichtbarkeit</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progress-fill" style="width:10%;"></div>
+  </div>
+  <p class="q-title" id="q-text"></p>
+  <div id="q-options"></div>
+  <div class="btn-row">
+    <button class="btn-back" id="btn-back" onclick="prevQuestion()">← Zurück</button>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()" disabled>Weiter →</button>
+  </div>
+</div>
+
+<!-- ════════════ RESULT ════════════ -->
+<div id="screen-result" class="hidden">
+  <!-- dynamically rendered -->
+</div>
+
+<script>
+// ──────────────────────────────────────
+// DATA
+// ──────────────────────────────────────
+const questions = [
+  {
+    domain: "Sichtbarkeit",
+    text: "Wie gut habt ihr Kostentransparenz in eurer Cloud-Umgebung?",
+    options: [
+      "Wir sehen nur die monatliche Gesamtrechnung vom Cloud-Provider.",
+      "Wir haben ein Dashboard, aber Kosten sind nicht granular aufgeschlüsselt.",
+      "Wir haben Echtzeit-Dashboards mit Aufschlüsselung nach Team, Service und Umgebung."
+    ]
+  },
+  {
+    domain: "Cost Allocation",
+    text: "Wie werden Cloud-Kosten euren Teams oder Projekten zugeordnet?",
+    options: [
+      "Keine Zuordnung – alle Kosten landen in einem zentralen Budget.",
+      "Manuelle Zuordnung durch Schätzungen oder grobe Aufteilung.",
+      "Automatisierte Kostenzuordnung über Tags, Accounts oder Projekte mit klarem Ownership."
+    ]
+  },
+  {
+    domain: "Tagging",
+    text: "Wie konsequent nutzt ihr Resource-Tagging in der Cloud?",
+    options: [
+      "Kaum oder gar keine Tags vorhanden – kein einheitliches Schema.",
+      "Tags existieren teilweise, werden aber nicht konsistent gepflegt.",
+      "Vollständiges Tag-Schema mit automatischer Durchsetzung (Policy/Compliance)."
+    ]
+  },
+  {
+    domain: "Budgets & Forecast",
+    text: "Wie plant und forecasted ihr eure Cloud-Ausgaben?",
+    options: [
+      "Kein formaler Prozess – Budgets werden reaktiv angepasst.",
+      "Jährliche Budgetplanung, aber kein kontinuierliches Forecasting.",
+      "Laufendes Forecasting mit automatisierten Budget-Alerts und Abweichungsanalysen."
+    ]
+  },
+  {
+    domain: "Anomalie-Erkennung",
+    text: "Wie erkennt ihr unerwartete Kostenanstiege?",
+    options: [
+      "Wir bemerken es erst, wenn die Rechnung kommt.",
+      "Wir haben manuelle Checks oder einfache Schwellenwert-Alerts.",
+      "Automatisierte Anomalie-Erkennung mit sofortigen Benachrichtigungen und Root-Cause-Analyse."
+    ]
+  },
+  {
+    domain: "Optimierung",
+    text: "Wie aktiv optimiert ihr eure Cloud-Ressourcen?",
+    options: [
+      "Keine aktive Optimierung – Ressourcen laufen wie ursprünglich provisioniert.",
+      "Gelegentliche Reviews, aber keine systematische Optimierungsroutine.",
+      "Regelmäßige Optimierungszyklen: Right-Sizing, Idle-Resource-Cleanup, Auto-Scaling."
+    ]
+  },
+  {
+    domain: "Commitments",
+    text: "Nutzt ihr Commitment-basierte Rabatte (Reserved Instances, Savings Plans)?",
+    options: [
+      "Nein, wir nutzen ausschließlich On-Demand-Preise.",
+      "Teilweise, aber ohne systematische Coverage-Analyse.",
+      "Ja, mit aktivem Management: Coverage-Tracking und Ziel-Coverage > 70%."
+    ]
+  },
+  {
+    domain: "Governance",
+    text: "Welche Governance-Prozesse existieren für Cloud-Kosten?",
+    options: [
+      "Keine definierten Prozesse – Cloud-Kosten werden nicht aktiv gesteuert.",
+      "Es gibt erste Richtlinien, aber keine durchgängige Umsetzung.",
+      "Definierte FinOps-Policies, regelmäßige Cost-Reviews und klare Eskalationspfade."
+    ]
+  },
+  {
+    domain: "Tooling",
+    text: "Welche FinOps-Tools und -Prozesse nutzt ihr aktiv?",
+    options: [
+      "Nur die nativen Billing-Dashboards des Cloud-Providers.",
+      "Ein Drittanbieter-Tool, aber ohne tiefe Integration in Workflows.",
+      "Dedizierte FinOps-Plattform mit automatisierten Reports und Integrationen."
+    ]
+  },
+  {
+    domain: "Kultur & Organisation",
+    text: "Wie verankert ist FinOps in eurer Unternehmenskultur?",
+    options: [
+      "Cloud-Kosten sind ausschließlich Thema der IT/Finance – keine Entwickler-Verantwortung.",
+      "Es gibt Awareness, aber FinOps ist kein fester Bestandteil der Engineering-Prozesse.",
+      "FinOps ist integriert: Teams haben Budgetverantwortung und Cost-KPIs."
+    ]
+  }
+];
+
+const domainBarColors = [
+  "#1a56db","#0f766e","#7c3aed","#b45309","#9f1239",
+  "#166534","#7c3aed","#15803d","#c2410c","#0f766e"
+];
+
+// ──────────────────────────────────────
+// STATE
+// ──────────────────────────────────────
+let current = 0;
+let answers  = new Array(10).fill(null);
+
+// ──────────────────────────────────────
+// HELPERS
+// ──────────────────────────────────────
+function show(id)  { document.getElementById(id).classList.remove('hidden'); }
+function hide(id)  { document.getElementById(id).classList.add('hidden'); }
+
+// ──────────────────────────────────────
+// FLOW
+// ──────────────────────────────────────
+function startAssessment() {
+  hide('screen-intro');
+  show('screen-question');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('q-counter').textContent  = `Frage ${current + 1} von ${questions.length}`;
+  document.getElementById('q-domain').textContent   = q.domain;
+  document.getElementById('q-text').textContent     = q.text;
+  document.getElementById('progress-fill').style.width = `${((current + 1) / questions.length) * 100}%`;
+  document.getElementById('btn-back').style.visibility = current === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').textContent   = current === questions.length - 1 ? 'Ergebnis anzeigen →' : 'Weiter →';
+  document.getElementById('btn-next').disabled      = answers[current] === null;
+
+  const container = document.getElementById('q-options');
+  container.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn' + (answers[current] === i + 1 ? ' selected' : '');
+    btn.innerHTML = `<span class="badge">${String.fromCharCode(65 + i)}</span><span>${opt}</span>`;
+    if (answers[current] === i + 1) {
+      btn.querySelector('.badge').style.background = '#1a56db';
+      btn.querySelector('.badge').style.color = '#fff';
+    }
+    btn.onclick = () => selectOption(i + 1);
+    container.appendChild(btn);
+  });
+}
+
+function selectOption(score) {
+  answers[current] = score;
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    const sel = i + 1 === score;
+    btn.classList.toggle('selected', sel);
+    const badge = btn.querySelector('.badge');
+    badge.style.background = sel ? '#1a56db' : '';
+    badge.style.color = sel ? '#fff' : '';
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (current < questions.length - 1) { current++; renderQuestion(); }
+  else showResult();
+}
+
+function prevQuestion() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+// ──────────────────────────────────────
+// RESULT
+// ──────────────────────────────────────
+function showResult() {
+  hide('screen-question');
+  show('screen-result');
+
+  const total = answers.reduce((s, a) => s + (a || 0), 0);
+  const pct   = Math.round((total / 30) * 100);
+
+  let level, icon, bgColor, textColor, borderColor, desc, recs;
+
+  if (total <= 16) {
+    level = 'Crawl'; icon = '🐛';
+    bgColor = '#fef2f2'; textColor = '#991b1b'; borderColor = '#fca5a5';
+    desc = 'Ihr steht am Anfang der FinOps-Reise. Die Grundlagen für Kostentransparenz und -kontrolle müssen noch etabliert werden.';
+    recs = [
+      'Cloud-Kosten-Visibility aufbauen – Tagging-Strategie definieren',
+      'Ersten Cost-Allocation-Prozess einrichten',
+      'Budget-Alerts und einfaches Forecasting aktivieren',
+      'FinOps-Verantwortlichen benennen (intern oder extern)'
+    ];
+  } else if (total <= 23) {
+    level = 'Walk'; icon = '🚶';
+    bgColor = '#fffbeb'; textColor = '#92400e'; borderColor = '#fcd34d';
+    desc = 'Ihr habt eine solide Basis. Einzelne FinOps-Praktiken sind etabliert, aber noch nicht durchgängig oder automatisiert.';
+    recs = [
+      'Tagging-Compliance auf über 90% steigern',
+      'Commitment-Coverage systematisch analysieren und erhöhen',
+      'FinOps-Reviews in Sprint-Zyklen integrieren',
+      'Automatisiertes Anomalie-Monitoring einführen'
+    ];
+  } else {
+    level = 'Run'; icon = '🏃';
+    bgColor = '#f0fdf4'; textColor = '#14532d'; borderColor = '#86efac';
+    desc = 'Ihr habt FinOps-Reife erreicht! Prozesse sind automatisiert, Verantwortung ist verteilt und Optimierung läuft kontinuierlich.';
+    recs = [
+      'Multi-Cloud-Optimierung und Provider-Vergleiche angehen',
+      'FinOps-KPIs in Unternehmens-OKRs verankern',
+      'Unit Economics einführen (Cost per Request, Cost per User)',
+      'Sustainability/GreenOps als nächste Reifestufe angehen'
+    ];
+  }
+
+  const rs = document.getElementById('screen-result');
+  rs.innerHTML = `
+    <p class="result-header">Dein Ergebnis</p>
+    <h2 class="result-title">Cloud FinOps Reifegrad</h2>
+
+    <div class="result-badge" style="background:${bgColor}; border:1px solid ${borderColor};">
+      <span class="result-icon">${icon}</span>
+      <div>
+        <div class="result-level" style="color:${textColor};">${level}</div>
+        <div class="result-score" style="color:${textColor};">${total} von 30 Punkten (${pct}%)</div>
+        <p class="result-desc" style="color:${textColor};">${desc}</p>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <p class="section-label">Score nach Domain</p>
+      ${questions.map((q, i) => `
+        <div class="domain-row">
+          <span class="domain-name">${q.domain}</span>
+          <div class="bar-bg">
+            <div class="bar-fill" style="width:${((answers[i]||0)/3)*100}%; background:${domainBarColors[i]};"></div>
+          </div>
+          <span class="bar-score">${answers[i]||0}/3</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="section-card">
+      <p class="section-label">Empfohlene nächste Schritte</p>
+      ${recs.map(r => `
+        <div class="next-step">
+          <span class="step-arrow">→</span>
+          <span>${r}</span>
+        </div>`).join('')}
+    </div>
+
+    <!-- LEAD CAPTURE – Ergebnis per E-Mail senden -->
+    <div class="contact-card" id="contact-form">
+      <p class="contact-title">Ergebnis-Report erhalten</p>
+      <p class="contact-sub">Wir senden dir eine individuelle Auswertung mit konkreten Handlungsempfehlungen.</p>
+      <input class="contact-input" type="text"  id="inp-name"  placeholder="Dein Name" />
+      <input class="contact-input" type="email" id="inp-email" placeholder="E-Mail-Adresse" />
+      <button class="btn-send" onclick="handleSend('${level}', ${total})">Report anfordern →</button>
+    </div>
+    <div id="sent-confirmation" class="hidden sent-msg">✓ Vielen Dank! Wir melden uns in Kürze bei dir.</div>
+
+    <div class="btn-row-result">
+      <button class="btn-restart" onclick="restartAssessment()">↺ Neu starten</button>
+    </div>
+  `;
+}
+
+function handleSend(level, score) {
+  const name  = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+
+  if (!name || !email) {
+    alert('Bitte Name und E-Mail-Adresse eingeben.');
+    return;
+  }
+
+  // ─── WIX INTEGRATION: Hier sendest du die Daten an deine Wix-Datenbank ───
+  // Option A: window.parent.postMessage (Velo-Integration)
+  window.parent.postMessage({
+    type: 'finops-lead',
+    name:  name,
+    email: email,
+    level: level,
+    score: score
+  }, '*');
+
+  // Option B: Fetch an eine externe Webhook-URL (z.B. Make.com / Zapier)
+  // fetch('https://DEINE-WEBHOOK-URL.com', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ name, email, level, score })
+  // });
+  // ─────────────────────────────────────────────────────────────────────────
+
+  document.getElementById('contact-form').classList.add('hidden');
+  document.getElementById('sent-confirmation').classList.remove('hidden');
+}
+
+function restartAssessment() {
+  current = 0;
+  answers = new Array(10).fill(null);
+  document.getElementById('screen-result').innerHTML = '';
+  hide('screen-result');
+  show('screen-intro');
+}
+</script>
+</body>
+</html>
