@@ -4,27 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cloud FinOps Reifegrad-Assessment</title>
+
+<!-- EmailJS – kostenloser E-Mail-Versand aus statischem HTML -->
+<!-- Anleitung: emailjs.com → Account → Service + Template anlegen -->
+<!-- Dann EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID unten ersetzen -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-    font-size: 15px;
-    color: #1a1a1a;
-    background: #fff;
-    padding: 28px 24px;
-    line-height: 1.6;
+    font-size: 15px; color: #1a1a1a; background: #fff;
+    padding: 28px 24px; line-height: 1.6;
   }
 
   /* ── Progress ── */
   .progress-wrap { background: #f0f0f0; height: 4px; border-radius: 2px; margin-bottom: 24px; }
-  .progress-fill { height: 4px; border-radius: 2px; background: #1a56db; transition: width 0.4s ease; }
+  .progress-fill { height: 4px; border-radius: 2px; background: #ff512f; transition: width 0.4s ease; }
 
   .meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   .meta-label { font-size: 12px; color: #6b7280; }
   .domain-badge {
     font-size: 11px; padding: 3px 10px; border-radius: 99px;
-    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+    background: #fff3f0; color: #c0392b; border: 1px solid #ffb8a8;
   }
 
   /* ── Question ── */
@@ -32,23 +35,19 @@
 
   .option-btn {
     display: flex; align-items: flex-start; gap: 12px;
-    width: 100%; text-align: left;
-    padding: 13px 16px; margin-bottom: 10px;
+    width: 100%; text-align: left; padding: 13px 16px; margin-bottom: 10px;
     border: 1px solid #e5e7eb; border-radius: 10px;
-    background: #fff; cursor: pointer;
-    font-size: 14px; color: #374151;
+    background: #fff; cursor: pointer; font-size: 14px; color: #374151;
     transition: border-color 0.15s, background 0.15s;
   }
-  .option-btn:hover { background: #f9fafb; border-color: #9ca3af; }
-  .option-btn.selected { border-color: #1a56db; background: #eff6ff; color: #1e3a8a; }
-  .option-btn.selected .badge { background: #1a56db; color: #fff; }
+  .option-btn:hover { background: #fff8f6; border-color: #ff8c6e; }
+  .option-btn.selected { border-color: #ff512f; background: #fff3f0; color: #7f1d1d; }
+  .option-btn.selected .badge { background: #ff512f; color: #fff; }
 
   .badge {
-    flex-shrink: 0; width: 24px; height: 24px;
-    border-radius: 50%; background: #f3f4f6;
-    font-size: 11px; font-weight: 600; color: #6b7280;
-    display: flex; align-items: center; justify-content: center;
-    margin-top: 1px;
+    flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+    background: #f3f4f6; font-size: 11px; font-weight: 600; color: #6b7280;
+    display: flex; align-items: center; justify-content: center; margin-top: 1px;
   }
 
   /* ── Buttons ── */
@@ -62,18 +61,17 @@
 
   .btn-next {
     flex: 1; padding: 11px 20px; border: none; border-radius: 8px;
-    background: #1a56db; color: #fff; cursor: pointer;
-    font-size: 15px; font-weight: 500;
-    transition: background 0.15s, opacity 0.15s;
+    background: #ff512f; color: #fff; cursor: pointer;
+    font-size: 15px; font-weight: 500; transition: background 0.15s;
   }
-  .btn-next:hover { background: #1245b8; }
-  .btn-next:disabled { background: #93c5fd; cursor: default; }
+  .btn-next:hover { background: #e8421f; }
+  .btn-next:disabled { background: #ffb8a8; cursor: default; }
 
   /* ── Intro ── */
   .intro-header { font-size: 22px; font-weight: 600; color: #111; margin-bottom: 8px; }
   .intro-sub { font-size: 14px; color: #6b7280; margin-bottom: 24px; }
 
-  .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+  .level-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
   .level-card {
     border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px 12px;
     text-align: center; background: #f9fafb;
@@ -84,10 +82,43 @@
 
   .btn-start {
     width: 100%; padding: 13px; border: none; border-radius: 10px;
-    background: #1a56db; color: #fff; font-size: 16px; font-weight: 500;
+    background: #ff512f; color: #fff; font-size: 16px; font-weight: 500;
     cursor: pointer; transition: background 0.15s;
   }
-  .btn-start:hover { background: #1245b8; }
+  .btn-start:hover { background: #e8421f; }
+
+  /* ── Pre-Assessment Formular ── */
+  .pre-form-card {
+    border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 20px; margin-bottom: 20px; background: #f9fafb;
+  }
+  .pre-form-title { font-size: 15px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .pre-form-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; line-height: 1.5; }
+
+  .form-group { margin-bottom: 13px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+  .form-label .req { color: #ff512f; margin-left: 2px; }
+
+  .form-input {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; color: #111; background: #fff; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .form-input:focus { border-color: #ff512f; box-shadow: 0 0 0 3px rgba(255,81,47,0.12); }
+  .form-input.error { border-color: #ef4444; }
+
+  .form-select {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; color: #111; background: #fff; outline: none; cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    transition: border-color 0.15s;
+  }
+  .form-select:focus { border-color: #ff512f; box-shadow: 0 0 0 3px rgba(255,81,47,0.12); }
+
+  .error-msg { font-size: 12px; color: #ef4444; margin-top: 4px; display: none; }
+  .privacy-note { font-size: 12px; color: #9ca3af; margin-top: 14px; line-height: 1.5; }
 
   /* ── Result ── */
   .result-header { font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
@@ -102,10 +133,7 @@
   .result-score { font-size: 13px; margin-top: 2px; opacity: 0.75; }
   .result-desc { font-size: 14px; line-height: 1.65; margin-top: 10px; }
 
-  .section-card {
-    border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px;
-    margin-bottom: 14px;
-  }
+  .section-card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 18px; margin-bottom: 14px; }
   .section-label {
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
     text-transform: uppercase; color: #9ca3af; margin-bottom: 12px;
@@ -118,42 +146,28 @@
   .bar-score { font-size: 12px; color: #9ca3af; width: 28px; text-align: right; }
 
   .next-step { display: flex; gap: 8px; margin: 8px 0; font-size: 14px; color: #374151; }
-  .step-arrow { color: #1a56db; flex-shrink: 0; }
+  .step-arrow { color: #ff512f; flex-shrink: 0; }
 
-  .btn-row-result { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .send-status {
+    margin-top: 4px; margin-bottom: 14px; padding: 12px 16px;
+    border-radius: 8px; font-size: 14px; text-align: center; display: none;
+  }
+  .send-status.success { background: #f0fdf4; color: #166534; border: 1px solid #86efac; }
+  .send-status.error   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+
+  .btn-row-result { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
   .btn-restart {
     padding: 10px 20px; border: 1px solid #e5e7eb; border-radius: 8px;
     background: #fff; cursor: pointer; font-size: 14px; color: #6b7280;
   }
   .btn-restart:hover { background: #f9fafb; }
 
-  /* Contact capture */
-  .contact-card {
-    border: 1px solid #bfdbfe; border-radius: 10px;
-    background: #eff6ff; padding: 18px; margin-bottom: 14px;
-  }
-  .contact-title { font-size: 15px; font-weight: 500; color: #1e3a8a; margin-bottom: 4px; }
-  .contact-sub { font-size: 13px; color: #3b82f6; margin-bottom: 14px; }
-  .contact-input {
-    width: 100%; padding: 10px 12px; border: 1px solid #bfdbfe; border-radius: 8px;
-    font-size: 14px; margin-bottom: 10px; background: #fff; color: #111;
-    outline: none;
-  }
-  .contact-input:focus { border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
-  .btn-send {
-    width: 100%; padding: 10px; border: none; border-radius: 8px;
-    background: #1a56db; color: #fff; font-size: 14px; font-weight: 500;
-    cursor: pointer;
-  }
-  .btn-send:hover { background: #1245b8; }
-  .sent-msg { font-size: 14px; color: #15803d; text-align: center; padding: 10px 0; }
-
   .hidden { display: none; }
 </style>
 </head>
 <body>
 
-<!-- ════════════ INTRO ════════════ -->
+<!-- ════════════ INTRO + KONTAKTFORMULAR ════════════ -->
 <div id="screen-intro">
   <p class="intro-header">Cloud FinOps</p>
   <h1 class="intro-header" style="font-size:22px; margin-bottom:8px;">Reifegrad-Assessment</h1>
@@ -177,10 +191,40 @@
     </div>
   </div>
 
-  <button class="btn-start" onclick="startAssessment()">Assessment starten →</button>
+  <div class="pre-form-card">
+    <p class="pre-form-title">Kurz vorstellen – dann geht es los</p>
+    <p class="pre-form-sub">Ihre Angaben helfen uns, Ihre Ergebnisse besser einzuordnen und Ihnen eine persönliche Auswertung zukommen zu lassen.</p>
+
+    <div class="form-group">
+      <label class="form-label" for="inp-name">Ihr Name</label>
+      <input class="form-input" type="text" id="inp-name" placeholder="z. B. Max Mustermann" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="inp-email">E-Mail-Adresse <span class="req">*</span></label>
+      <input class="form-input" type="email" id="inp-email" placeholder="ihre@email.de" />
+      <p class="error-msg" id="email-error">Bitte geben Sie eine gültige E-Mail-Adresse an.</p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="inp-size">Firmengröße</label>
+      <select class="form-select" id="inp-size">
+        <option value="">Bitte auswählen …</option>
+        <option value="1–10 Mitarbeitende">1–10 Mitarbeitende</option>
+        <option value="11–50 Mitarbeitende">11–50 Mitarbeitende</option>
+        <option value="51–250 Mitarbeitende">51–250 Mitarbeitende</option>
+        <option value="251–1.000 Mitarbeitende">251–1.000 Mitarbeitende</option>
+        <option value="Mehr als 1.000 Mitarbeitende">Mehr als 1.000 Mitarbeitende</option>
+      </select>
+    </div>
+
+    <p class="privacy-note">Mit dem Start des Assessments stimmen Sie zu, dass Ihre Angaben und Ergebnisse zur Bearbeitung Ihrer Anfrage gespeichert werden. Weitere Informationen finden Sie in unserer Datenschutzerklärung.</p>
+  </div>
+
+  <button class="btn-start" onclick="handleStart()">Jetzt starten →</button>
 </div>
 
-<!-- ════════════ QUESTION ════════════ -->
+<!-- ════════════ FRAGEN ════════════ -->
 <div id="screen-question" class="hidden">
   <div class="meta-row">
     <span class="meta-label" id="q-counter">Frage 1 von 10</span>
@@ -197,28 +241,43 @@
   </div>
 </div>
 
-<!-- ════════════ RESULT ════════════ -->
-<div id="screen-result" class="hidden">
-  <!-- dynamically rendered -->
-</div>
+<!-- ════════════ ERGEBNIS ════════════ -->
+<div id="screen-result" class="hidden"></div>
 
 <script>
-// ──────────────────────────────────────
-// DATA
-// ──────────────────────────────────────
+// ═══════════════════════════════════════════════
+// EMAILJS-KONFIGURATION
+// ═══════════════════════════════════════════════
+// 1. Kostenlosen Account auf emailjs.com erstellen
+// 2. E-Mail-Service verbinden (z.B. Gmail oder SMTP)
+// 3. Template anlegen mit folgenden Variablen:
+//    {{to_email}}, {{user_name}}, {{user_email}},
+//    {{company_size}}, {{level}}, {{score}},
+//    {{domain_scores}}, {{recommendations}}
+// 4. Die drei Werte unten durch Ihre eigenen ersetzen
+const EMAILJS_PUBLIC_KEY  = 'sCPwFMAd_wpN2-T5a';
+const EMAILJS_SERVICE_ID  = 'service_6tcmg4i';
+const EMAILJS_TEMPLATE_ID = 'template_srx901g';
+const REPORT_RECIPIENT    = 'info@finopsacademy.de';
+
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+// ═══════════════════════════════════════════════
+// FRAGEN
+// ═══════════════════════════════════════════════
 const questions = [
   {
     domain: "Sichtbarkeit",
-    text: "Wie gut habt ihr Kostentransparenz in eurer Cloud-Umgebung?",
+    text: "Wie gut haben Sie Kostentransparenz in Ihrer Cloud-Umgebung?",
     options: [
-      "Wir sehen nur die monatliche Gesamtrechnung vom Cloud-Provider.",
-      "Wir haben ein Dashboard, aber Kosten sind nicht granular aufgeschlüsselt.",
-      "Wir haben Echtzeit-Dashboards mit Aufschlüsselung nach Team, Service und Umgebung."
+      "Sie sehen nur die monatliche Gesamtrechnung vom Cloud-Provider.",
+      "Sie haben ein Dashboard, aber Kosten sind nicht granular aufgeschlüsselt.",
+      "Sie haben Echtzeit-Dashboards mit Aufschlüsselung nach Team, Service und Umgebung."
     ]
   },
   {
     domain: "Cost Allocation",
-    text: "Wie werden Cloud-Kosten euren Teams oder Projekten zugeordnet?",
+    text: "Wie werden Cloud-Kosten Ihren Teams oder Projekten zugeordnet?",
     options: [
       "Keine Zuordnung – alle Kosten landen in einem zentralen Budget.",
       "Manuelle Zuordnung durch Schätzungen oder grobe Aufteilung.",
@@ -227,7 +286,7 @@ const questions = [
   },
   {
     domain: "Tagging",
-    text: "Wie konsequent nutzt ihr Resource-Tagging in der Cloud?",
+    text: "Wie konsequent nutzen Sie Resource-Tagging in der Cloud?",
     options: [
       "Kaum oder gar keine Tags vorhanden – kein einheitliches Schema.",
       "Tags existieren teilweise, werden aber nicht konsistent gepflegt.",
@@ -236,7 +295,7 @@ const questions = [
   },
   {
     domain: "Budgets & Forecast",
-    text: "Wie plant und forecasted ihr eure Cloud-Ausgaben?",
+    text: "Wie planen und forecasen Sie Ihre Cloud-Ausgaben?",
     options: [
       "Kein formaler Prozess – Budgets werden reaktiv angepasst.",
       "Jährliche Budgetplanung, aber kein kontinuierliches Forecasting.",
@@ -245,16 +304,16 @@ const questions = [
   },
   {
     domain: "Anomalie-Erkennung",
-    text: "Wie erkennt ihr unerwartete Kostenanstiege?",
+    text: "Wie erkennen Sie unerwartete Kostenanstiege?",
     options: [
-      "Wir bemerken es erst, wenn die Rechnung kommt.",
-      "Wir haben manuelle Checks oder einfache Schwellenwert-Alerts.",
+      "Sie bemerken es erst, wenn die Rechnung kommt.",
+      "Sie haben manuelle Checks oder einfache Schwellenwert-Alerts.",
       "Automatisierte Anomalie-Erkennung mit sofortigen Benachrichtigungen und Root-Cause-Analyse."
     ]
   },
   {
     domain: "Optimierung",
-    text: "Wie aktiv optimiert ihr eure Cloud-Ressourcen?",
+    text: "Wie aktiv optimieren Sie Ihre Cloud-Ressourcen?",
     options: [
       "Keine aktive Optimierung – Ressourcen laufen wie ursprünglich provisioniert.",
       "Gelegentliche Reviews, aber keine systematische Optimierungsroutine.",
@@ -263,16 +322,16 @@ const questions = [
   },
   {
     domain: "Commitments",
-    text: "Nutzt ihr Commitment-basierte Rabatte (Reserved Instances, Savings Plans)?",
+    text: "Nutzen Sie Commitment-basierte Rabatte (Reserved Instances, Savings Plans)?",
     options: [
-      "Nein, wir nutzen ausschließlich On-Demand-Preise.",
+      "Nein, Sie nutzen ausschließlich On-Demand-Preise.",
       "Teilweise, aber ohne systematische Coverage-Analyse.",
-      "Ja, mit aktivem Management: Coverage-Tracking und Ziel-Coverage > 70%."
+      "Ja, mit aktivem Management: Coverage-Tracking und Ziel-Coverage > 70 %."
     ]
   },
   {
     domain: "Governance",
-    text: "Welche Governance-Prozesse existieren für Cloud-Kosten?",
+    text: "Welche Governance-Prozesse existieren für Cloud-Kosten in Ihrem Unternehmen?",
     options: [
       "Keine definierten Prozesse – Cloud-Kosten werden nicht aktiv gesteuert.",
       "Es gibt erste Richtlinien, aber keine durchgängige Umsetzung.",
@@ -281,7 +340,7 @@ const questions = [
   },
   {
     domain: "Tooling",
-    text: "Welche FinOps-Tools und -Prozesse nutzt ihr aktiv?",
+    text: "Welche FinOps-Tools und -Prozesse nutzen Sie aktiv?",
     options: [
       "Nur die nativen Billing-Dashboards des Cloud-Providers.",
       "Ein Drittanbieter-Tool, aber ohne tiefe Integration in Workflows.",
@@ -290,7 +349,7 @@ const questions = [
   },
   {
     domain: "Kultur & Organisation",
-    text: "Wie verankert ist FinOps in eurer Unternehmenskultur?",
+    text: "Wie verankert ist FinOps in Ihrer Unternehmenskultur?",
     options: [
       "Cloud-Kosten sind ausschließlich Thema der IT/Finance – keine Entwickler-Verantwortung.",
       "Es gibt Awareness, aber FinOps ist kein fester Bestandteil der Engineering-Prozesse.",
@@ -300,40 +359,63 @@ const questions = [
 ];
 
 const domainBarColors = [
-  "#1a56db","#0f766e","#7c3aed","#b45309","#9f1239",
+  "#ff512f","#0f766e","#7c3aed","#b45309","#9f1239",
   "#166534","#7c3aed","#15803d","#c2410c","#0f766e"
 ];
 
-// ──────────────────────────────────────
-// STATE
-// ──────────────────────────────────────
-let current = 0;
+// ═══════════════════════════════════════════════
+// STATUS
+// ═══════════════════════════════════════════════
+let current  = 0;
 let answers  = new Array(10).fill(null);
+let userData = { name: '', email: '', companySize: '' };
 
-// ──────────────────────────────────────
-// HELPERS
-// ──────────────────────────────────────
-function show(id)  { document.getElementById(id).classList.remove('hidden'); }
-function hide(id)  { document.getElementById(id).classList.add('hidden'); }
+// ═══════════════════════════════════════════════
+// HILFSFUNKTIONEN
+// ═══════════════════════════════════════════════
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
-// ──────────────────────────────────────
-// FLOW
-// ──────────────────────────────────────
-function startAssessment() {
+// ═══════════════════════════════════════════════
+// START – Eingaben prüfen
+// ═══════════════════════════════════════════════
+function handleStart() {
+  const emailEl  = document.getElementById('inp-email');
+  const errorEl  = document.getElementById('email-error');
+  const email    = emailEl.value.trim();
+
+  emailEl.classList.remove('error');
+  errorEl.style.display = 'none';
+
+  if (!email || !isValidEmail(email)) {
+    emailEl.classList.add('error');
+    errorEl.style.display = 'block';
+    emailEl.focus();
+    return;
+  }
+
+  userData.name        = document.getElementById('inp-name').value.trim();
+  userData.email       = email;
+  userData.companySize = document.getElementById('inp-size').value;
+
   hide('screen-intro');
   show('screen-question');
   renderQuestion();
 }
 
+// ═══════════════════════════════════════════════
+// FRAGEN RENDERN
+// ═══════════════════════════════════════════════
 function renderQuestion() {
   const q = questions[current];
-  document.getElementById('q-counter').textContent  = `Frage ${current + 1} von ${questions.length}`;
-  document.getElementById('q-domain').textContent   = q.domain;
-  document.getElementById('q-text').textContent     = q.text;
+  document.getElementById('q-counter').textContent = `Frage ${current + 1} von ${questions.length}`;
+  document.getElementById('q-domain').textContent  = q.domain;
+  document.getElementById('q-text').textContent    = q.text;
   document.getElementById('progress-fill').style.width = `${((current + 1) / questions.length) * 100}%`;
   document.getElementById('btn-back').style.visibility = current === 0 ? 'hidden' : 'visible';
-  document.getElementById('btn-next').textContent   = current === questions.length - 1 ? 'Ergebnis anzeigen →' : 'Weiter →';
-  document.getElementById('btn-next').disabled      = answers[current] === null;
+  document.getElementById('btn-next').textContent  = current === questions.length - 1 ? 'Ergebnis anzeigen →' : 'Weiter →';
+  document.getElementById('btn-next').disabled     = answers[current] === null;
 
   const container = document.getElementById('q-options');
   container.innerHTML = '';
@@ -342,7 +424,7 @@ function renderQuestion() {
     btn.className = 'option-btn' + (answers[current] === i + 1 ? ' selected' : '');
     btn.innerHTML = `<span class="badge">${String.fromCharCode(65 + i)}</span><span>${opt}</span>`;
     if (answers[current] === i + 1) {
-      btn.querySelector('.badge').style.background = '#1a56db';
+      btn.querySelector('.badge').style.background = '#ff512f';
       btn.querySelector('.badge').style.color = '#fff';
     }
     btn.onclick = () => selectOption(i + 1);
@@ -356,8 +438,8 @@ function selectOption(score) {
     const sel = i + 1 === score;
     btn.classList.toggle('selected', sel);
     const badge = btn.querySelector('.badge');
-    badge.style.background = sel ? '#1a56db' : '';
-    badge.style.color = sel ? '#fff' : '';
+    badge.style.background = sel ? '#ff512f' : '';
+    badge.style.color      = sel ? '#fff'    : '';
   });
   document.getElementById('btn-next').disabled = false;
 }
@@ -371,22 +453,21 @@ function prevQuestion() {
   if (current > 0) { current--; renderQuestion(); }
 }
 
-// ──────────────────────────────────────
-// RESULT
-// ──────────────────────────────────────
+// ═══════════════════════════════════════════════
+// ERGEBNIS
+// ═══════════════════════════════════════════════
 function showResult() {
   hide('screen-question');
   show('screen-result');
 
   const total = answers.reduce((s, a) => s + (a || 0), 0);
   const pct   = Math.round((total / 30) * 100);
-
   let level, icon, bgColor, textColor, borderColor, desc, recs;
 
   if (total <= 16) {
     level = 'Crawl'; icon = '🐛';
     bgColor = '#fef2f2'; textColor = '#991b1b'; borderColor = '#fca5a5';
-    desc = 'Ihr steht am Anfang der FinOps-Reise. Die Grundlagen für Kostentransparenz und -kontrolle müssen noch etabliert werden.';
+    desc = 'Sie stehen am Anfang der FinOps-Reise. Die Grundlagen für Kostentransparenz und -kontrolle müssen noch etabliert werden.';
     recs = [
       'Cloud-Kosten-Visibility aufbauen – Tagging-Strategie definieren',
       'Ersten Cost-Allocation-Prozess einrichten',
@@ -396,9 +477,9 @@ function showResult() {
   } else if (total <= 23) {
     level = 'Walk'; icon = '🚶';
     bgColor = '#fffbeb'; textColor = '#92400e'; borderColor = '#fcd34d';
-    desc = 'Ihr habt eine solide Basis. Einzelne FinOps-Praktiken sind etabliert, aber noch nicht durchgängig oder automatisiert.';
+    desc = 'Sie haben eine solide Basis. Einzelne FinOps-Praktiken sind etabliert, aber noch nicht durchgängig oder automatisiert.';
     recs = [
-      'Tagging-Compliance auf über 90% steigern',
+      'Tagging-Compliance auf über 90 % steigern',
       'Commitment-Coverage systematisch analysieren und erhöhen',
       'FinOps-Reviews in Sprint-Zyklen integrieren',
       'Automatisiertes Anomalie-Monitoring einführen'
@@ -406,7 +487,7 @@ function showResult() {
   } else {
     level = 'Run'; icon = '🏃';
     bgColor = '#f0fdf4'; textColor = '#14532d'; borderColor = '#86efac';
-    desc = 'Ihr habt FinOps-Reife erreicht! Prozesse sind automatisiert, Verantwortung ist verteilt und Optimierung läuft kontinuierlich.';
+    desc = 'Sie haben FinOps-Reife erreicht! Prozesse sind automatisiert, Verantwortung ist verteilt und Optimierung läuft kontinuierlich.';
     recs = [
       'Multi-Cloud-Optimierung und Provider-Vergleiche angehen',
       'FinOps-KPIs in Unternehmens-OKRs verankern',
@@ -415,16 +496,15 @@ function showResult() {
     ];
   }
 
-  const rs = document.getElementById('screen-result');
-  rs.innerHTML = `
-    <p class="result-header">Dein Ergebnis</p>
+  document.getElementById('screen-result').innerHTML = `
+    <p class="result-header">Ihr Ergebnis</p>
     <h2 class="result-title">Cloud FinOps Reifegrad</h2>
 
     <div class="result-badge" style="background:${bgColor}; border:1px solid ${borderColor};">
       <span class="result-icon">${icon}</span>
       <div>
         <div class="result-level" style="color:${textColor};">${level}</div>
-        <div class="result-score" style="color:${textColor};">${total} von 30 Punkten (${pct}%)</div>
+        <div class="result-score" style="color:${textColor};">${total} von 30 Punkten (${pct} %)</div>
         <p class="result-desc" style="color:${textColor};">${desc}</p>
       </div>
     </div>
@@ -450,56 +530,61 @@ function showResult() {
         </div>`).join('')}
     </div>
 
-    <!-- LEAD CAPTURE – Ergebnis per E-Mail senden -->
-    <div class="contact-card" id="contact-form">
-      <p class="contact-title">Ergebnis-Report erhalten</p>
-      <p class="contact-sub">Wir senden dir eine individuelle Auswertung mit konkreten Handlungsempfehlungen.</p>
-      <input class="contact-input" type="text"  id="inp-name"  placeholder="Dein Name" />
-      <input class="contact-input" type="email" id="inp-email" placeholder="E-Mail-Adresse" />
-      <button class="btn-send" onclick="handleSend('${level}', ${total})">Report anfordern →</button>
-    </div>
-    <div id="sent-confirmation" class="hidden sent-msg">✓ Vielen Dank! Wir melden uns in Kürze bei dir.</div>
+    <div id="send-status" class="send-status"></div>
 
     <div class="btn-row-result">
       <button class="btn-restart" onclick="restartAssessment()">↺ Neu starten</button>
     </div>
   `;
+
+  sendResultEmail(level, total, pct, recs);
 }
 
-function handleSend(level, score) {
-  const name  = document.getElementById('inp-name').value.trim();
-  const email = document.getElementById('inp-email').value.trim();
+// ═══════════════════════════════════════════════
+// E-MAIL-VERSAND
+// ═══════════════════════════════════════════════
+function sendResultEmail(level, total, pct, recs) {
+  const domainScores = questions.map((q, i) =>
+    `${q.domain}: ${answers[i]||0}/3`
+  ).join('\n');
 
-  if (!name || !email) {
-    alert('Bitte Name und E-Mail-Adresse eingeben.');
-    return;
-  }
-
-  // ─── WIX INTEGRATION: Hier sendest du die Daten an deine Wix-Datenbank ───
-  // Option A: window.parent.postMessage (Velo-Integration)
-  window.parent.postMessage({
-    type: 'finops-lead',
-    name:  name,
-    email: email,
-    level: level,
-    score: score
-  }, '*');
-
-  // Option B: Fetch an eine externe Webhook-URL (z.B. Make.com / Zapier)
-  // fetch('https://DEINE-WEBHOOK-URL.com', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ name, email, level, score })
-  // });
-  // ─────────────────────────────────────────────────────────────────────────
-
-  document.getElementById('contact-form').classList.add('hidden');
-  document.getElementById('sent-confirmation').classList.remove('hidden');
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_email:        REPORT_RECIPIENT,
+    user_name:       userData.name        || '(nicht angegeben)',
+    user_email:      userData.email,
+    company_size:    userData.companySize  || '(nicht angegeben)',
+    level:           level,
+    score:           `${total}/30 (${pct} %)`,
+    domain_scores:   domainScores,
+    recommendations: recs.map((r, i) => `${i+1}. ${r}`).join('\n')
+  })
+  .then(() => {
+    const el = document.getElementById('send-status');
+    if (!el) return;
+    el.textContent = '✓ Ihre Ergebnisse wurden erfolgreich an unser Team übermittelt. Wir melden uns in Kürze bei Ihnen.';
+    el.className = 'send-status success';
+    el.style.display = 'block';
+  })
+  .catch(err => {
+    console.error('EmailJS-Fehler:', err);
+    const el = document.getElementById('send-status');
+    if (!el) return;
+    el.textContent = 'Die Ergebnisse konnten nicht automatisch übermittelt werden. Bitte kontaktieren Sie uns direkt unter info@finopsacademy.de.';
+    el.className = 'send-status error';
+    el.style.display = 'block';
+  });
 }
 
+// ═══════════════════════════════════════════════
+// NEU STARTEN
+// ═══════════════════════════════════════════════
 function restartAssessment() {
-  current = 0;
-  answers = new Array(10).fill(null);
+  current  = 0;
+  answers  = new Array(10).fill(null);
+  userData = { name: '', email: '', companySize: '' };
+  document.getElementById('inp-name').value  = '';
+  document.getElementById('inp-email').value = '';
+  document.getElementById('inp-size').value  = '';
   document.getElementById('screen-result').innerHTML = '';
   hide('screen-result');
   show('screen-intro');
